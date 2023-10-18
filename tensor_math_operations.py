@@ -81,5 +81,30 @@ print(x3)
 
 # Tensor Operations
 x = torch.tensor([[1,2,3],[4,5,6],[7,8,9]])
-print(torch.sum(x,dim=0)) # Add across dimension 0 or Reduce dimension 0 (Results in addition across rows)
-print(torch.sum(x,dim=1)) # Add across dimension 1 or Reduce dimension 1 (Results in addition across cols)
+y = torch.tensor([[1,2,3],[6,5,4],[7,8,9]])
+print(torch.sum(x,dim=0)) # Add across dimension 0 or Output will be dim 0 i.e row
+print(torch.sum(x,dim=1)) # Add across dimension 1 or Output will be dim 1 i.e col
+
+values, indices = torch.max(x,dim=0) # Max across dimension 0 or Output will be a row(i.e max of each column)
+print(values, indices)
+values, indices = torch.max(x,dim=1) # Max across dimension 1 or Output will be a col(i.e max of each row)
+print(values, indices)
+
+values, indices = torch.min(x,dim=0) # Min across dimension 0 or Output will be a row(i.e min of each column)
+print(values, indices)
+values, indices = torch.min(x,dim=1) # Min across dimension 1 or Output will be a col(i.e min of each row)
+print(values, indices)
+
+# argmax and argmin - returns in the index of the max/min element
+
+mean_x = torch.mean(x.float(),dim=0) # tensor must be float
+print(mean_x)
+z = torch.eq(x,y) # element wise checking if x and y are equal
+print(z)
+
+z = torch.clamp(x,min=4,max=6) # clamps elements in tensor to this range
+print(z)
+
+x = torch.tensor([1,0,0,1],dtype=bool)
+print(x.any())
+print(x.all())
