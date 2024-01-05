@@ -41,6 +41,7 @@ class Vocabulary:
     def numericalize(self, text):
         tokenized_text = self.tokenizer_eng(text)
         return [self.stoi[token] if token in self.stoi else self.stoi["<UNK>"] for token in tokenized_text]
+
 class FlickrDataset(Dataset):
     def __init__(self, root_dir, captions_file, transform=None, freq_threshold=5):
         self.root_dir = root_dir
@@ -71,6 +72,65 @@ class FlickrDataset(Dataset):
         numericalized_caption = [self.vocab.stoi["<EOS>"]]
 
         return img, torch.tensor(numericalized_caption)
+
+class MyCollate:
+    def __init__(self, pad_idx):
+        self.pad_idx = pad_idx
+
+    def __call__(self, batch):
+        imgs = [item[0].unsqueeze(0) for item in batch]
+        imgs = torch.cat(imgs, dim=0)
+        targets = [item[1] for item in batch]
+        targets = pad_sequence(targets, batch_first=False)
+        return imgs, targets
+
+def get_loader(
+        root_folder,
+        annotation_file,
+        transform,
+        batch_size = 32,
+        num_workers = 4,
+        shuffle = True,
+        pin_memory = True
+):
+    dataset = FlickrDataset(root_folder)
+    pad_idx = dataset.vocab.stoi["<PAD>"]
+    loader = DataLoader(
+        dataset=dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        shuffle=shuffle,
+        pin_memory=pin_memory,
+        collate_fn=MyCollate(pad_idx=pad_idx)
+    )
+    return loader
+path_name = 'xyz'
+dataloader = get_loader(path_name,annotation_file=path_name,transform=None)
+
+'''
+Note : 
+In PyTorch, the `collate_fn` parameter in the `DataLoader` can be either a function or an object of a class. Both approaches are valid, and the choice depends on your preference and the complexity of your collation logic.
+
+1. Function as `collate_fn`:
+def my_collate_fn(batch):
+    # Your custom collation logic here
+    return processed_batch
+# Use the function with DataLoader
+train_loader = DataLoader(dataset, batch_size=64, collate_fn=my_collate_fn)
+
+2. Class as `collate_fn`:
+class MyCollateClass:
+    def __call__(self, batch):
+        # Your custom collation logic here
+        return processed_batch
+# Instantiate the class and use it with DataLoader
+my_collate_instance = MyCollateClass()
+train_loader = DataLoader(dataset, batch_size=64, collate_fn=my_collate_instance)
+
+Using a class allows you to maintain state between batches if needed, as the class instance retains its state between calls. This can be beneficial if your collation logic requires some persistent information.
+
+The key point is that the `collate_fn` parameter should be a callable (a function or an object with a `__call__` method) that takes a list of batch data and returns the processed batch. The processing typically involves padding sequences, converting data types, or any other necessary steps to prepare the batch for the model.
+'''
 
 
 
